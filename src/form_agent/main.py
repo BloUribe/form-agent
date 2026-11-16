@@ -20,7 +20,7 @@ def main() -> None:
     ap.add_argument("--headed", action="store_true")
     ap.add_argument("--dry-run", action="store_true", help="llena pero no envía")
     ap.add_argument("--no-email", action="store_true", help="no enviar el reporte")
-    ap.add_argument("--auto-approve", action="store_true", help="no pedir confirmación antes de enviar")
+    ap.add_argument("--auto-approve", action="store_true", help="enviar sin pedir tu aprobación")
     a = ap.parse_args()
     load_dotenv()  # exporta LANGSMITH_* al entorno para que el tracing automático de LangChain funcione
 
@@ -31,8 +31,11 @@ def main() -> None:
     browser = Browser(s.allowed_domains, headed=a.headed, timeout_ms=s.action_timeout_ms)
     try:
         agent = build_agent(s, browser, run_dir, dry_run=a.dry_run, auto_approve=a.auto_approve)
-        approve = lambda: input("¿Enviar el formulario? [y/N] ").strip().lower() == "y"
-        res = run_agent(agent, a.url, profile, s, run_dir, approve=approve)
+        def reply(agent_text: str) -> str:  # conversación en lenguaje natural por terminal
+            print(f"\n{agent_text}\n")
+            return input("tú> ").strip()
+
+        res = run_agent(agent, a.url, profile, s, run_dir, reply=None if a.auto_approve else reply)
         browser.screenshot(str(run_dir / "final.png"))
     finally:
         browser.close()

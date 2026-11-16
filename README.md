@@ -10,22 +10,26 @@ cp .env.example .env                            # ANTHROPIC_API_KEY, RESEND_API_
 uv run langgraph dev                            # abre Studio (cuenta personal de LangSmith)
 ```
 En el chat de Studio: «Ve a https://www.selenium.dev/selenium/web/web-form.html, llena nombre Ana, elige Two y envíalo».
-Studio pausa antes de enviar (aprobar/rechazar) y cuando el agente pide ayuda (`ask_human`).
+Todo es conversación en lenguaje natural (sin JSON):
+1. El agente te muestra una **tabla markdown** con los campos encontrados y el valor que propone.
+2. Tú respondes: «cambia el password por X», «omite el textarea», «así está bien».
+3. Llena, te muestra la tabla final y pregunta «¿lo envío?». Solo con un «sí» claro (`approval.py`) envía.
+4. Tras enviar llega **un correo** con los campos usados y el screenshot del éxito o error. Charlas o formularios sin enviar no mandan correo.
 
-CLI alternativo: `uv run form-agent --url <url> --data data/profile.json [--dry-run] [--headed] [--auto-approve]`.
+CLI alternativo (chat por terminal): `uv run form-agent --url <url> --data data/profile.json [--dry-run] [--headed] [--auto-approve]`.
 
 ## Arquitectura
 ```
 Studio (chat, trazas, aprobaciones) → grafo Deep Agents (src/form_agent/graph.py)
    tools.py: goto, snapshot, click, type_text, select_option, press, screenshot, page_text,
-             submit_form (aprobación humana), ask_human (interrupt), send_email (avance / ayuda)
+             submit_form (bloqueado hasta que tu último mensaje lo apruebe), send_email (solo si lo pides)
    browser.py: Playwright en un hilo dedicado (el sync API está atado a su hilo)
-   agent.py: prompt + middleware que envía el reporte final por Resend (en hilo, sin bloquear el loop)
+   agent.py: prompt + middleware que envía el reporte tras cada envío de formulario (en hilo, sin bloquear el loop)
 ```
 El agente lee la página con un *snapshot* de elementos interactivos con `ref` (más barato y fiable que screenshots).
 
 ## Seguridad y límites
-- Lista blanca de dominios (`ALLOWED_DOMAINS`, `["*"]` para abrir); el envío del formulario siempre pide aprobación.
+- Lista blanca de dominios (`ALLOWED_DOMAINS`, `["*"]` para abrir); `submit_form` rechaza el envío si el último mensaje del usuario no es una aprobación clara (corregido por tests; «sí pero cambia…» no cuenta).
 - Claves solo en `.env` (ignorado por git). `--dry-run`/`DRY_RUN=true` llena sin enviar.
 - Resend sin dominio propio solo envía a tu correo registrado, desde `onboarding@resend.dev`.
 - Un solo navegador compartido por servidor: no ejecutar tareas en paralelo. No maneja captchas, iframes ni subida de archivos.
