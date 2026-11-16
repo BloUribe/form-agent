@@ -8,6 +8,7 @@ from pathlib import Path
 from .agent import build_agent, run_agent
 from .browser import Browser
 from .config import Settings
+from .email import parse_final, send_report
 
 
 def main() -> None:
@@ -16,6 +17,7 @@ def main() -> None:
     ap.add_argument("--data", required=True, help="JSON con el perfil a llenar")
     ap.add_argument("--headed", action="store_true")
     ap.add_argument("--dry-run", action="store_true", help="llena pero no envía")
+    ap.add_argument("--no-email", action="store_true", help="no enviar el reporte")
     ap.add_argument("--auto-approve", action="store_true", help="no pedir confirmación antes de enviar")
     a = ap.parse_args()
 
@@ -32,6 +34,15 @@ def main() -> None:
     finally:
         browser.close()
     print(res["final"])
+    if not a.no_email:
+        if not (s.resend_api_key and s.email_to):
+            print("\n[correo omitido: falta RESEND_API_KEY o EMAIL_TO en .env]")
+        else:
+            try:
+                eid = send_report(s, parse_final(res["final"]), res, a.url, run_dir / "final.png", a.dry_run)
+                print(f"\n[correo enviado: {eid}]")
+            except Exception as ex:  # el fallo del correo no debe perder el resultado del run
+                print(f"\n[ERROR enviando correo: {ex}]")
     print(f"\n[{res['steps']} mensajes, {res['seconds']}s, artifacts: {run_dir}]")
 
 

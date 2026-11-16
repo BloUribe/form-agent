@@ -56,7 +56,12 @@ def run_agent(agent, url: str, profile: dict, settings: Settings, run_dir: Path,
         ok = approve() if approve else False
         inp = Command(resume={"decisions": [{"type": "approve"} if ok else {"type": "reject", "message": "El usuario rechazó el envío."}]})
     log.close()
+    usage = {"input_tokens": 0, "output_tokens": 0}
+    for m in result["messages"]:
+        u = getattr(m, "usage_metadata", None) or {}
+        usage["input_tokens"] += u.get("input_tokens", 0)
+        usage["output_tokens"] += u.get("output_tokens", 0)
     final = result["messages"][-1].content
     if isinstance(final, list):
         final = "".join(b.get("text", "") for b in final if isinstance(b, dict))
-    return {"final": final, "steps": seen, "seconds": round(time.time() - start, 1)}
+    return {"final": final, "steps": seen, "seconds": round(time.time() - start, 1), **usage}

@@ -14,3 +14,7 @@ class Settings(BaseSettings):
     allowed_domains: list[str] = ["www.selenium.dev", "localhost", "127.0.0.1"]
     action_timeout_ms: int = 10_000
     artifacts_dir: str = "artifacts"
+    email_from: str = "onboarding@resend.dev"
+    # USD por millón de tokens (estimación; ajustar al precio vigente del modelo)
+    price_in_per_mtok: float = 3.0
+    price_out_per_mtok: float = 15.0
