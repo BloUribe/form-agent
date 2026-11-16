@@ -5,6 +5,8 @@ import json
 import time
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 from .agent import build_agent, run_agent
 from .browser import Browser
 from .config import Settings
@@ -20,6 +22,7 @@ def main() -> None:
     ap.add_argument("--no-email", action="store_true", help="no enviar el reporte")
     ap.add_argument("--auto-approve", action="store_true", help="no pedir confirmación antes de enviar")
     a = ap.parse_args()
+    load_dotenv()  # exporta LANGSMITH_* al entorno para que el tracing automático de LangChain funcione
 
     s = Settings()
     profile = json.loads(Path(a.data).read_text())
