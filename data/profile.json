@@ -1,0 +1,9 @@
+{
+  "text_input": "Pablo Prueba",
+  "password": "Secreto-1234",
+  "textarea": "Prueba técnica de agente que llena formularios.",
+  "dropdown_select": "Two",
+  "checkbox": "marcar el checkbox 'Checked checkbox'",
+  "radio": "marcar 'Default radio'",
+  "date": "01/15/2026"
+}

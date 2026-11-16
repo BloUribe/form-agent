@@ -1,0 +1,6 @@
+<!doctype html><html><head><title>Fixture form</title></head><body>
+<form id="f" onsubmit="event.preventDefault();document.getElementById('out').innerText='Received!'">
+<label for="n">Name</label><input id="n" name="name">
+<label for="c">Color</label><select id="c" name="color"><option>Red</option><option>Blue</option></select>
+<label><input type="checkbox" name="ok"> Agree</label>
+<button type="submit">Send</button></form><p id="out"></p></body></html>
