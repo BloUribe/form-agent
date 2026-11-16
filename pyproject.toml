@@ -1,0 +1,12 @@
+[project]
+name = "form-agent"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "deepagents>=0.7.38",
+    "langchain-anthropic>=1.7.10",
+    "playwright>=1.65.2",
+    "pydantic-settings>=2.16.3",
+    "pytest>=9.2.0",
+    "resend>=2.53.2",
+]
