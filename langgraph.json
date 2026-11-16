@@ -1,5 +1,8 @@
 {
   "dependencies": ["."],
-  "graphs": {"form_agent": "./src/form_agent/graph.py:graph"},
+  "graphs": {
+    "form_agent": "./src/form_agent/graph.py:graph",
+    "freight_agent": "./src/form_agent/freight/graph.py:graph"
+  },
   "env": ".env"
 }

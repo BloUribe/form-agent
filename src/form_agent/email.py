@@ -43,10 +43,12 @@ def build_html(report: dict, res: dict, url: str, cost: float, dry_run: bool) ->
 <p>Screenshot final adjunto.</p>"""
 
 
-def send_message(s: Settings, subject: str, html_body: str, attachments: list[Path] | None = None) -> str:
+def send_message(s: Settings, subject: str, html_body: str, attachments: list[Path] | None = None,
+                 to: str | None = None) -> str:
+    """`to` por defecto es EMAIL_TO (reportes al dueño); el agente de fletes lo fija al remitente verificado."""
     resend.api_key = s.resend_api_key
     files = [{"filename": p.name, "content": list(p.read_bytes())} for p in (attachments or []) if p.exists()]
-    out = resend.Emails.send({"from": s.email_from, "to": [s.email_to], "subject": subject,
+    out = resend.Emails.send({"from": s.email_from, "to": [to or s.email_to], "subject": subject,
                               "html": html_body, "attachments": files})
     return out["id"]
 
