@@ -43,14 +43,14 @@ def build_html(report: dict, res: dict, url: str, cost: float, dry_run: bool) ->
 <p>Screenshot final adjunto.</p>"""
 
 
-def send_report(s: Settings, report: dict, res: dict, url: str, screenshot: Path, dry_run: bool) -> str:
+def send_message(s: Settings, subject: str, html_body: str, attachments: list[Path] | None = None) -> str:
     resend.api_key = s.resend_api_key
-    attachments = []
-    if screenshot.exists():
-        attachments.append({"filename": "final.png", "content": list(screenshot.read_bytes())})
-    subject = f"form-agent: {'dry-run' if dry_run else ('enviado' if report.get('submitted') else 'no enviado')} · {url}"
-    out = resend.Emails.send({
-        "from": s.email_from, "to": [s.email_to], "subject": subject,
-        "html": build_html(report, res, url, estimate_cost(res, s), dry_run), "attachments": attachments,
-    })
+    files = [{"filename": p.name, "content": list(p.read_bytes())} for p in (attachments or []) if p.exists()]
+    out = resend.Emails.send({"from": s.email_from, "to": [s.email_to], "subject": subject,
+                              "html": html_body, "attachments": files})
     return out["id"]
+
+
+def send_report(s: Settings, report: dict, res: dict, url: str, screenshot: Path, dry_run: bool) -> str:
+    subject = f"form-agent: {'dry-run' if dry_run else ('enviado' if report.get('submitted') else 'no enviado')} · {url}"
+    return send_message(s, subject, build_html(report, res, url, estimate_cost(res, s), dry_run), [screenshot])

@@ -65,8 +65,9 @@ class Browser:
 
     def goto(self, url: str) -> str:
         host = urlparse(url).hostname or ""
-        if host not in self.allowed:
-            return f"ERROR: dominio '{host}' no permitido. Permitidos: {self.allowed}"
+        if "*" not in self.allowed and host not in self.allowed:
+            return (f"ERROR: dominio '{host}' no permitido. Permitidos: {self.allowed}. "
+                    "Pide al usuario (ask_human) que lo agregue a ALLOWED_DOMAINS en .env.")
         return self._safe(lambda: f"ok: {self.page.goto(url).status} {self.page.title()}")
 
     def snapshot(self) -> str:
@@ -90,3 +91,14 @@ class Browser:
 
     def press(self, key: str) -> str:
         return self._safe(lambda: self.page.keyboard.press(key))
+
+
+_shared: Browser | None = None
+
+
+def get_shared_browser(settings, headed: bool = False) -> Browser:
+    """Navegador único y perezoso (se crea en la primera tool). Lo usa el grafo de Studio."""
+    global _shared
+    if _shared is None:
+        _shared = Browser(settings.allowed_domains, headed=headed, timeout_ms=settings.action_timeout_ms)
+    return _shared
